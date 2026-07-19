@@ -21,6 +21,7 @@
         <javaparser.version>3.25.10</javaparser.version>
         <hypersistence.version>3.7.1</hypersistence.version>
         <checkstyle.version>10.12.7</checkstyle.version>
+        <lombok.version>1.18.34</lombok.version>
     </properties>
 
     <dependencies>
@@ -110,7 +111,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <!-- OpenAPI / Swagger -->

@@ -20,6 +20,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/history/history.component').then(m => m.HistoryComponent)
       },
       {
+        path: 'processing/:jobId',
+        loadComponent: () => import('./features/processing/processing.component').then(m => m.ProcessingComponent)
+      },
+      {
         path: 'report/:id',
         loadComponent: () => import('./features/report/report.component').then(m => m.ReportComponent)
       },

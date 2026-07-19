@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,6 +35,60 @@ public class ProjectProcessingService {
     private final ProjectScanner projectScanner;
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final com.example.aicodereviewplatform.analysis.executor.BackgroundAnalysisExecutor backgroundAnalysisExecutor;
+    private final com.example.aicodereviewplatform.analysis.service.AnalysisProgressService progressService;
+
+    @Transactional
+    public com.example.aicodereviewplatform.project.dto.UploadResponse initiateUpload(MultipartFile file, UUID jobId) {
+        if (file.isEmpty()) {
+            throw new ProjectProcessingException("Cannot upload empty file.");
+        }
+
+        UUID projectId = UUID.randomUUID();
+
+        Project project = Project.builder()
+                .id(projectId)
+                .projectName(file.getOriginalFilename())
+                .archiveName(file.getOriginalFilename())
+                .status(ProjectStatus.PROCESSING)
+                .uploadTimestamp(LocalDateTime.now())
+                .rootDirectory("")
+                .mainClass(null)
+                .totalFiles(0)
+                .javaFiles(0)
+                .packageCount(0)
+                .estimatedLinesOfCode(0)
+                .build();
+
+        project = projectRepository.save(project);
+
+        try {
+            Path archivePath = storageService.store(file, projectId);
+            
+            // Create job status tracker
+            progressService.createJob(jobId, projectId);
+
+            // Trigger background execution after the transaction commits to avoid race conditions
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        backgroundAnalysisExecutor.executeAnalysisAsync(jobId, projectId, archivePath);
+                    }
+                });
+            } else {
+                backgroundAnalysisExecutor.executeAnalysisAsync(jobId, projectId, archivePath);
+            }
+
+            return new com.example.aicodereviewplatform.project.dto.UploadResponse(projectId, jobId);
+
+        } catch (Exception e) {
+            log.error("Failed to initiate upload for project {}", projectId, e);
+            project.setStatus(ProjectStatus.FAILED);
+            projectRepository.save(project);
+            throw new ProjectProcessingException("Failed to initiate project upload: " + e.getMessage(), e);
+        }
+    }
 
     @Transactional
     public ProjectInfoDTO processUpload(MultipartFile file) {

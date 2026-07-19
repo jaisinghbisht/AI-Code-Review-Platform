@@ -39,29 +39,8 @@ public class DefaultSourceSelectionService implements SourceSelectionService {
         // Keep track of unique files to select
         Set<FileAnalysis> selectedFilesSet = new LinkedHashSet<>();
 
-        // 1. Find all TypeDefinitions and sort by line count descending
-        List<TypeDefinition> allTypes = fileAnalyses.stream()
-                .flatMap(fa -> fa.getTypeDefinitions().stream())
-                .filter(td -> "CLASS".equals(td.getType()))
-                .sorted(Comparator.comparingInt(TypeDefinition::getLineCount).reversed())
-                .toList();
-
-        // 2. Select top N largest classes
-        for (int i = 0; i < Math.min(topNClasses, allTypes.size()); i++) {
-            TypeDefinition td = allTypes.get(i);
-            if (td.getFileAnalysis() != null) {
-                selectedFilesSet.add(td.getFileAnalysis());
-            }
-        }
-
-        // 3. Select classes exceeding configurable thresholds
-        for (TypeDefinition td : allTypes) {
-            if (td.getLineCount() >= lineThreshold || td.getMethodCount() >= methodThreshold) {
-                if (td.getFileAnalysis() != null) {
-                    selectedFilesSet.add(td.getFileAnalysis());
-                }
-            }
-        }
+        // 1. Select all files in the project to perform a complete code review
+        selectedFilesSet.addAll(fileAnalyses);
 
         // 4. Map selected FileAnalysis entities to SelectedFile objects containing source code
         List<SelectedFile> selectedFiles = new ArrayList<>();

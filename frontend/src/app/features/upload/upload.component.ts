@@ -1,6 +1,6 @@
-import { Component, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,7 +12,6 @@ import { ProjectService } from '../../core/services/project.service';
 import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpEventType, HttpEvent } from '@angular/common/http';
-import { ProjectInfo } from '../../core/models/project.model';
 
 @Component({
   selector: 'app-upload',
@@ -26,7 +25,7 @@ import { ProjectInfo } from '../../core/models/project.model';
     <div class="page-container">
       <div class="page-header">
         <h1>Submit for Review</h1>
-        <p class="subtitle">Upload your Java project ZIP archive or write a code snippet for AI analysis.</p>
+        <p class="subtitle">Upload your Java project ZIP archive for real-time code analysis and AI review.</p>
       </div>
 
       <mat-card class="main-card">
@@ -38,7 +37,7 @@ import { ProjectInfo } from '../../core/models/project.model';
                 <mat-icon class="tab-icon">folder_zip</mat-icon> ZIP Project
               </ng-template>
               
-              <div class="upload-container" *ngIf="!uploading && !processing">
+              <div class="upload-container" *ngIf="!uploading">
                 <div class="drag-drop-zone" 
                      (dragover)="onDragOver($event)" 
                      (dragleave)="onDragLeave($event)" 
@@ -52,43 +51,24 @@ import { ProjectInfo } from '../../core/models/project.model';
                 </div>
               </div>
 
-              <!-- Uploading and Processing Progress -->
-              <div class="progress-wrapper" *ngIf="uploading || processing">
+              <!-- Upload Progress -->
+              <div class="progress-wrapper" *ngIf="uploading">
                 <div class="progress-header">
-                  <h3>Processing: {{ fileName }}</h3>
-                  <span class="status-badge" [class.success]="currentStep === 5">{{ getStepStatusText() }}</span>
+                  <h3>Uploading: {{ fileName }}</h3>
+                  <span class="status-badge uploading">Uploading</span>
                 </div>
-                <mat-progress-bar [mode]="progressMode" [value]="uploadProgress" class="progress-bar"></mat-progress-bar>
-                
-                <div class="steps-list">
-                  <div class="step-item" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
-                    <mat-icon class="step-icon">{{ currentStep > 1 ? 'check_circle' : 'pending' }}</mat-icon>
-                    <span class="step-text">Uploading project archive ({{ uploadProgress }}%)</span>
-                  </div>
-                  <div class="step-item" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
-                    <mat-icon class="step-icon">{{ currentStep > 2 ? 'check_circle' : (currentStep === 2 ? 'sync' : 'pending') }}</mat-icon>
-                    <span class="step-text">Extracting and mapping workspace folder structure</span>
-                  </div>
-                  <div class="step-item" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
-                    <mat-icon class="step-icon">{{ currentStep > 3 ? 'check_circle' : (currentStep === 3 ? 'sync' : 'pending') }}</mat-icon>
-                    <span class="step-text">Running JavaParser code analysis</span>
-                  </div>
-                  <div class="step-item" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
-                    <mat-icon class="step-icon">{{ currentStep > 4 ? 'check_circle' : (currentStep === 4 ? 'sync' : 'pending') }}</mat-icon>
-                    <span class="step-text">Generating structured AI review report</span>
-                  </div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="uploadProgress" class="progress-bar mb-16"></mat-progress-bar>
+                <p class="progress-text">Uploading ZIP file to server... {{ uploadProgress }}%</p>
               </div>
             </mat-tab>
 
-            <!-- Single File Text Editor Tab (Fallback) -->
+            <!-- Disabled single file / repo placeholders -->
             <mat-tab disabled>
               <ng-template mat-tab-label>
                 <mat-icon class="tab-icon">description</mat-icon> Single File
               </ng-template>
             </mat-tab>
 
-            <!-- GitHub Repository Tab (Placeholder) -->
             <mat-tab disabled>
               <ng-template mat-tab-label>
                 <mat-icon class="tab-icon">source</mat-icon> GitHub Repository
@@ -129,7 +109,6 @@ import { ProjectInfo } from '../../core/models/project.model';
     .drag-drop-zone h3 { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; }
     .drag-drop-zone p { margin: 0; font-size: 13px; }
     
-    /* Progress state styles */
     .progress-wrapper { padding: 32px 16px; }
     .progress-header {
       display: flex;
@@ -145,49 +124,14 @@ import { ProjectInfo } from '../../core/models/project.model';
       border-radius: 12px;
       background-color: #eaeef2;
       color: #57606a;
-      &.success {
-        background-color: #dafbe1;
-        color: #1a7f37;
-      }
-    }
-    .progress-bar { height: 6px; border-radius: 3px; margin-bottom: 32px; }
-    .steps-list { display: flex; flex-direction: column; gap: 20px; }
-    .step-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #8c959f;
-      font-size: 14px;
-      transition: color 0.2s ease;
-      
-      .step-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-        color: #afb8c1;
-      }
-      
-      &.active {
+      &.uploading {
+        background-color: #ddf4ff;
         color: #0969da;
-        font-weight: 600;
-        .step-icon {
-          color: #0969da;
-          animation: pulse 1.5s infinite ease-in-out;
-        }
-      }
-      &.completed {
-        color: #1a7f37;
-        .step-icon {
-          color: #1a7f37;
-        }
       }
     }
-    
-    @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
-    }
+    .progress-bar { height: 6px; border-radius: 3px; }
+    .progress-text { font-size: 13px; color: #57606a; margin: 0; }
+    .mb-16 { margin-bottom: 16px; }
   `]
 })
 export class UploadComponent {
@@ -197,11 +141,8 @@ export class UploadComponent {
 
   isDragging = false;
   uploading = false;
-  processing = false;
   fileName = '';
   uploadProgress = 0;
-  currentStep = 0; // Steps: 1: Uploading, 2: Extracting/Mapping, 3: Analyzing, 4: AI Reviewing, 5: Done
-  progressMode: 'determinate' | 'indeterminate' = 'determinate';
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
@@ -239,77 +180,26 @@ export class UploadComponent {
     this.fileName = file.name;
     this.uploading = true;
     this.uploadProgress = 0;
-    this.currentStep = 1;
-    this.progressMode = 'determinate';
 
     this.projectService.uploadProject(file).subscribe({
-      next: (event: HttpEvent<ProjectInfo>) => {
+      next: (event: HttpEvent<{ projectId: string; jobId: string }>) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round((100 * event.loaded) / event.total);
         } else if (event.type === HttpEventType.Response) {
-          const projectInfo = event.body as ProjectInfo;
-          this.startProcessingStages(projectInfo);
+          const body = event.body;
+          if (body && body.jobId) {
+            this.snackBar.open('Upload completed. Starting code analysis...', 'Close', { duration: 2000 });
+            this.router.navigate(['/processing', body.jobId]);
+          } else {
+            this.uploading = false;
+            this.snackBar.open('Invalid response payload from server.', 'Close', { duration: 4000 });
+          }
         }
       },
       error: (err) => {
-        this.resetUploadState();
-        this.snackBar.open('Upload failed. Please check backend connection.', 'Close', { duration: 5000 });
+        this.uploading = false;
+        this.snackBar.open('Upload failed. Check backend connection.', 'Close', { duration: 5000 });
       }
     });
-  }
-
-  private startProcessingStages(projectInfo: ProjectInfo) {
-    this.uploading = false;
-    this.processing = true;
-    this.uploadProgress = 100;
-    this.currentStep = 2;
-    this.progressMode = 'indeterminate';
-
-    // Since database is created and ZIP is extracted, trigger runAnalysis
-    this.currentStep = 3;
-    this.projectService.runAnalysis(projectInfo.id).subscribe({
-      next: (analysisRes) => {
-        this.currentStep = 4;
-        
-        // Trigger AI Review generation
-        this.projectService.generateReview(analysisRes.analysisId).subscribe({
-          next: (reviewRes) => {
-            this.currentStep = 5;
-            this.snackBar.open('Review completed successfully!', 'Close', { duration: 3000 });
-            
-            // Automatically navigate to report details after completion
-            setTimeout(() => {
-              this.router.navigate(['/report', analysisRes.analysisId]);
-            }, 1000);
-          },
-          error: (err) => {
-            this.resetUploadState();
-            this.snackBar.open('AI Review generation failed.', 'Close', { duration: 5000 });
-          }
-        });
-      },
-      error: (err) => {
-        this.resetUploadState();
-        this.snackBar.open('Project structural analysis failed.', 'Close', { duration: 5000 });
-      }
-    });
-  }
-
-  private resetUploadState() {
-    this.uploading = false;
-    this.processing = false;
-    this.uploadProgress = 0;
-    this.currentStep = 0;
-  }
-
-  getStepStatusText(): string {
-    switch (this.currentStep) {
-      case 1: return 'Uploading...';
-      case 2: return 'Extracting...';
-      case 3: return 'Analyzing code...';
-      case 4: return 'AI Reviewing...';
-      case 5: return 'Completed';
-      default: return 'Pending';
-    }
   }
 }

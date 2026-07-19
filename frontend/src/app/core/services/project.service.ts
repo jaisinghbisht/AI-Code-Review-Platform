@@ -8,7 +8,7 @@ export class ProjectService {
   private http = inject(HttpClient);
 
   // Upload ZIP project with progress tracking
-  uploadProject(file: File): Observable<HttpEvent<ProjectInfo>> {
+  uploadProject(file: File): Observable<HttpEvent<{ projectId: string; jobId: string }>> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -17,7 +17,7 @@ export class ProjectService {
       responseType: 'json'
     });
 
-    return this.http.request(req) as Observable<HttpEvent<ProjectInfo>>;
+    return this.http.request(req) as Observable<HttpEvent<{ projectId: string; jobId: string }>>;
   }
 
   // Get project by ID

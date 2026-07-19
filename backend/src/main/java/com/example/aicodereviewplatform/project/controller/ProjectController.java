@@ -17,8 +17,9 @@ public class ProjectController {
     private final ProjectProcessingService projectService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ProjectInfoDTO> uploadProject(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(projectService.processUpload(file));
+    public ResponseEntity<com.example.aicodereviewplatform.project.dto.UploadResponse> uploadProject(@RequestParam("file") MultipartFile file) {
+        UUID jobId = UUID.randomUUID();
+        return ResponseEntity.ok(projectService.initiateUpload(file, jobId));
     }
 
     @GetMapping("/{id}")
