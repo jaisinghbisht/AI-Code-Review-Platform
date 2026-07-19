@@ -42,4 +42,11 @@ public class AiReviewController {
         ReviewDTO review = aiReviewService.getReview(reviewId);
         return ResponseEntity.ok(review);
     }
+
+    @GetMapping("/analysis/{analysisId:[a-fA-F0-9\\-]{36}}")
+    public ResponseEntity<ReviewDTO> getReviewByAnalysis(@PathVariable UUID analysisId) {
+        log.info("Received request to fetch AI review for analysis: {}", analysisId);
+        ReviewDTO review = aiReviewService.getReviewByAnalysis(analysisId);
+        return ResponseEntity.ok(review);
+    }
 }

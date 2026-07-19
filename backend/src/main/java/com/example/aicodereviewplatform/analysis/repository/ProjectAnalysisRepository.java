@@ -19,4 +19,6 @@ public interface ProjectAnalysisRepository extends JpaRepository<ProjectAnalysis
            "LEFT JOIN FETCH fa.checkstyleViolations " +
            "WHERE pa.id = :id")
     Optional<ProjectAnalysis> findByIdWithDetails(@Param("id") UUID id);
+
+    java.util.List<ProjectAnalysis> findByProjectId(UUID projectId);
 }

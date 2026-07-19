@@ -120,6 +120,13 @@ public class ProjectProcessingService {
         
         return dto;
     }
+
+    @Transactional(readOnly = true)
+    public List<ProjectInfoDTO> getAllProjects() {
+        return projectRepository.findAll().stream()
+                .map(projectMapper::toDto)
+                .collect(Collectors.toList());
+    }
     
     private Path determineActualRoot(Path extractPath) throws IOException {
         List<Path> contents = Files.list(extractPath).toList();
@@ -136,6 +143,26 @@ public class ProjectProcessingService {
                     .count();
         } catch (IOException e) {
             return 0;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public String getFileContent(UUID projectId, String filePath) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+        
+        Path projectRoot = Path.of(project.getRootDirectory()).toAbsolutePath().normalize();
+        Path file = Path.of(filePath).toAbsolutePath().normalize();
+        
+        // Security check: ensure path is within the project root directory
+        if (!file.startsWith(projectRoot)) {
+            throw new IllegalArgumentException("Path is outside project root");
+        }
+        
+        try {
+            return Files.readString(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file content", e);
         }
     }
 }

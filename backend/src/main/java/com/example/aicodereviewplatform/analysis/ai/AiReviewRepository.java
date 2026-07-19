@@ -15,4 +15,9 @@ public interface AiReviewRepository extends JpaRepository<AiReview, UUID> {
            "LEFT JOIN FETCH r.sections s " +
            "WHERE r.id = :id")
     Optional<AiReview> findByIdWithDetails(@Param("id") UUID id);
+
+    @Query("SELECT r FROM AiReview r " +
+           "LEFT JOIN FETCH r.sections s " +
+           "WHERE r.analysis.id = :analysisId")
+    Optional<AiReview> findByAnalysisId(@Param("analysisId") UUID analysisId);
 }

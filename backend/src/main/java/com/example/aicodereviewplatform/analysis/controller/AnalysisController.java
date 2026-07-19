@@ -27,4 +27,9 @@ public class AnalysisController {
         AnalysisDTO analysis = analysisService.getAnalysis(analysisId);
         return ResponseEntity.ok(analysis);
     }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<java.util.List<AnalysisDTO>> getAnalysesByProject(@PathVariable UUID projectId) {
+        return ResponseEntity.ok(analysisService.getAnalysesByProject(projectId));
+    }
 }

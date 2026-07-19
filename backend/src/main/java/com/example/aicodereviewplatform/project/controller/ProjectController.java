@@ -25,4 +25,14 @@ public class ProjectController {
     public ResponseEntity<ProjectInfoDTO> getProject(@PathVariable UUID id) {
         return ResponseEntity.ok(projectService.getProjectInfo(id));
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<ProjectInfoDTO>> getAllProjects() {
+        return ResponseEntity.ok(projectService.getAllProjects());
+    }
+
+    @GetMapping("/{id}/file-content")
+    public ResponseEntity<String> getFileContent(@PathVariable UUID id, @RequestParam("path") String path) {
+        return ResponseEntity.ok(projectService.getFileContent(id, path));
+    }
 }

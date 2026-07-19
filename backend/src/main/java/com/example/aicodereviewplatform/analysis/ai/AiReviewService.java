@@ -148,6 +148,14 @@ public class AiReviewService {
         return mapper.toDto(review);
     }
 
+    @Transactional(readOnly = true)
+    public ReviewDTO getReviewByAnalysis(UUID analysisId) {
+        log.info("Fetching AI review for analysis ID: {}", analysisId);
+        return aiReviewRepository.findByAnalysisId(analysisId)
+                .map(mapper::toDto)
+                .orElse(null);
+    }
+
     private List<ReviewSection> parseSections(String content, AiReview review) {
         List<ReviewSection> sections = new ArrayList<>();
         // Split content by markdown headings (e.g., #, ##, ###)

@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
   imports: [
+    CommonModule,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -21,10 +23,11 @@ import { MatButtonModule } from '@angular/material/button';
   ],
   template: `
     <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav mode="side" opened class="sidenav">
+      <!-- Collapsible navigation drawer -->
+      <mat-sidenav #sidenav mode="side" [opened]="sidenavOpened()" class="sidenav">
         <div class="logo-container">
-          <mat-icon>code</mat-icon>
-          <span>AI Code Review</span>
+          <mat-icon class="logo-icon">code</mat-icon>
+          <span class="logo-text">AI Code Review</span>
         </div>
         <mat-nav-list class="nav-list">
           <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
@@ -45,20 +48,26 @@ import { MatButtonModule } from '@angular/material/button';
           </a>
         </mat-nav-list>
       </mat-sidenav>
+
       <mat-sidenav-content class="main-content">
+        <!-- Top Toolbar -->
         <mat-toolbar class="top-toolbar">
+          <button mat-icon-button class="menu-toggle-btn" (click)="toggleSidenav()">
+            <mat-icon>menu</mat-icon>
+          </button>
+          
           <span class="spacer"></span>
+          
           <div class="model-indicator">
             <mat-icon>smart_toy</mat-icon>
             <span>qwen2.5-coder:7b</span>
           </div>
           <div class="theme-indicator">
-            <mat-icon>dark_mode</mat-icon>
+            <mat-icon>light_mode</mat-icon>
           </div>
-          <button mat-icon-button routerLink="/settings">
-            <mat-icon>settings</mat-icon>
-          </button>
         </mat-toolbar>
+
+        <!-- Main View Area -->
         <main class="content-wrapper">
           <router-outlet></router-outlet>
         </main>
@@ -68,58 +77,85 @@ import { MatButtonModule } from '@angular/material/button';
   styles: [`
     .sidenav-container {
       height: 100vh;
-      background-color: #0d1117; /* GitHub Dark Dimmed background */
+      background-color: #f6f8fa;
     }
     .sidenav {
-      width: 260px;
-      background-color: #161b22;
-      border-right: 1px solid #30363d;
-      color: #c9d1d9;
+      width: 250px;
+      background-color: #ffffff;
+      border-right: 1px solid #d0d7de;
+      color: #24292f;
+      transition: width 0.2s ease-in-out;
     }
     .logo-container {
       height: 64px;
       display: flex;
       align-items: center;
       padding: 0 24px;
-      color: #fff;
-      font-size: 18px;
+      color: #24292f;
+      font-size: 16px;
       font-weight: 600;
-      border-bottom: 1px solid #30363d;
-      mat-icon { margin-right: 12px; color: #58a6ff; }
+      border-bottom: 1px solid #d0d7de;
+      .logo-icon { margin-right: 10px; color: #0969da; }
     }
     .nav-list {
-      padding-top: 16px;
+      padding-top: 12px;
     }
     .active-link {
-      background-color: rgba(177, 186, 196, 0.12);
-      border-left: 3px solid #58a6ff;
+      background-color: rgba(9, 105, 218, 0.06) !important;
+      border-left: 4px solid #0969da;
+      color: #0969da !important;
+      mat-icon { color: #0969da !important; }
     }
     .top-toolbar {
-      background-color: #161b22;
-      border-bottom: 1px solid #30363d;
-      color: #c9d1d9;
+      background-color: #ffffff;
+      border-bottom: 1px solid #d0d7de;
+      color: #24292f;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .menu-toggle-btn {
+      color: #57606a;
     }
     .spacer { flex: 1 1 auto; }
-    .model-indicator, .theme-indicator {
+    .model-indicator {
       display: flex;
       align-items: center;
       padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 13px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 500;
       margin-right: 16px;
-      border: 1px solid #30363d;
-      color: #8b949e;
-      mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 6px; }
+      border: 1px solid #d0d7de;
+      color: #57606a;
+      background-color: #f6f8fa;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 6px; color: #0969da; }
     }
-    .theme-indicator { margin-right: 8px; mat-icon { margin-right: 0; } }
+    .theme-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #d0d7de;
+      color: #d29922;
+      background-color: #fff8c5;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
     .content-wrapper {
-      padding: 32px;
+      padding: 24px;
       height: calc(100vh - 64px);
       box-sizing: border-box;
       overflow-y: auto;
-      color: #c9d1d9;
+      background-color: #f6f8fa;
     }
   `]
 })
-export class LayoutComponent {}
+export class LayoutComponent {
+  sidenavOpened = signal<boolean>(true);
+
+  toggleSidenav() {
+    this.sidenavOpened.set(!this.sidenavOpened());
+  }
+}

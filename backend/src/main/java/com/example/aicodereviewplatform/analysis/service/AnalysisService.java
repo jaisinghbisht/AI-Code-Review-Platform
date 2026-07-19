@@ -97,4 +97,11 @@ public class AnalysisService {
                 .orElseThrow(() -> new ResourceNotFoundException("Analysis not found with id: " + analysisId));
         return analysisMapper.toDto(analysis);
     }
+
+    @Transactional(readOnly = true)
+    public List<AnalysisDTO> getAnalysesByProject(UUID projectId) {
+        return analysisRepository.findByProjectId(projectId).stream()
+                .map(analysisMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }
