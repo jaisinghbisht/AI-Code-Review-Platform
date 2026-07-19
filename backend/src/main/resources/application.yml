@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ai-code-review-platform
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ai_code_review
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/ai_code_review
+    user: user
+    password: password
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: qwen2.5-coder:7b
+          temperature: 0.2
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
