@@ -2,20 +2,19 @@ package com.example.aicodereviewplatform.analysis.model;
 
 import com.example.aicodereviewplatform.project.model.Project;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "project_analysis")
 public class ProjectAnalysis {
@@ -42,7 +41,7 @@ public class ProjectAnalysis {
 
     @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<FileAnalysis> fileAnalyses = new ArrayList<>();
+    private Set<FileAnalysis> fileAnalyses = new HashSet<>();
 
     public void addFileAnalysis(FileAnalysis fileAnalysis) {
         fileAnalyses.add(fileAnalysis);

@@ -1,0 +1,1 @@
+package com.example; public class MyClass { public void myMethod() {} }

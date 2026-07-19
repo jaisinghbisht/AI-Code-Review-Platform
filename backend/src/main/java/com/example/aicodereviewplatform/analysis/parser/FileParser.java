@@ -3,31 +3,37 @@ package com.example.aicodereviewplatform.analysis.parser;
 import com.example.aicodereviewplatform.analysis.model.FileAnalysis;
 import com.example.aicodereviewplatform.analysis.model.MethodDefinition;
 import com.example.aicodereviewplatform.analysis.model.TypeDefinition;
-import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.RecordDeclaration;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FileParser {
+
+    private final ParserConfiguration parserConfiguration;
 
     public FileAnalysis parse(Path javaFile) {
         try {
             String content = Files.readString(javaFile);
-            CompilationUnit cu = StaticJavaParser.parse(content);
+            JavaParser javaParser = new JavaParser(parserConfiguration);
+            
+            // Use the configured parser
+            CompilationUnit cu = javaParser.parse(content).getResult()
+                    .orElseThrow(() -> new IOException("Failed to parse file: " + javaFile));
 
             FileAnalysis fileAnalysis = FileAnalysis.builder()
                     .id(UUID.randomUUID())

@@ -1,5 +1,8 @@
 package com.example.aicodereviewplatform.analysis.service;
 
+import com.example.aicodereviewplatform.analysis.checkstyle.CheckstyleAnalyzer;
+import com.example.aicodereviewplatform.analysis.dto.AnalysisDTO;
+import com.example.aicodereviewplatform.analysis.mapper.AnalysisMapper;
 import com.example.aicodereviewplatform.analysis.model.AnalysisStatus;
 import com.example.aicodereviewplatform.analysis.model.FileAnalysis;
 import com.example.aicodereviewplatform.analysis.model.ProjectAnalysis;
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,8 @@ public class AnalysisService {
     private final ProjectAnalysisRepository analysisRepository;
     private final ProjectScanner projectScanner;
     private final FileParser fileParser;
+    private final AnalysisMapper analysisMapper;
+    private final CheckstyleAnalyzer checkstyleAnalyzer;
 
     @Transactional
     public UUID runAnalysis(UUID projectId) {
@@ -44,16 +50,25 @@ public class AnalysisService {
         analysis = analysisRepository.save(analysis);
 
         try {
-            List<Path> javaFiles = projectScanner.findJavaFiles(Path.of(project.getRootDirectory()));
+            Path projectRoot = Path.of(project.getRootDirectory());
+            List<Path> javaFiles = projectScanner.findJavaFiles(projectRoot);
 
+            // 1. JavaParser Analysis
+            log.info("Starting JavaParser analysis for project: {}", projectId);
             List<FileAnalysis> fileAnalyses = javaFiles.parallelStream()
                     .map(fileParser::parse)
-                    .filter(Objects::nonNull) // Filter out files that failed to parse
-                    .toList();
-
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             fileAnalyses.forEach(analysis::addFileAnalysis);
+            log.info("JavaParser analysis completed.");
 
-            // Aggregate metrics
+            // 2. Checkstyle Analysis (Temporarily disabled by user request)
+            log.info("Starting Checkstyle analysis...");
+            // checkstyleAnalyzer.analyze(fileAnalyses, projectRoot);
+            log.info("Checkstyle analysis completed.");
+
+            // 3. Aggregate and Save
+            log.info("Aggregating results...");
             analysis.setTotalClasses((int) fileAnalyses.stream().flatMap(fa -> fa.getTypeDefinitions().stream()).filter(td -> "CLASS".equals(td.getType())).count());
             analysis.setTotalInterfaces((int) fileAnalyses.stream().flatMap(fa -> fa.getTypeDefinitions().stream()).filter(td -> "INTERFACE".equals(td.getType())).count());
             analysis.setTotalEnums((int) fileAnalyses.stream().flatMap(fa -> fa.getTypeDefinitions().stream()).filter(td -> "ENUM".equals(td.getType())).count());
@@ -64,6 +79,7 @@ public class AnalysisService {
 
             analysis.setStatus(AnalysisStatus.COMPLETED);
             analysisRepository.save(analysis);
+            log.info("Analysis for project {} completed successfully.", projectId);
 
             return analysis.getId();
 
@@ -71,13 +87,14 @@ public class AnalysisService {
             log.error("Analysis failed for project {}", projectId, e);
             analysis.setStatus(AnalysisStatus.FAILED);
             analysisRepository.save(analysis);
-            throw new RuntimeException("Analysis failed", e); // Let global handler catch it
+            throw new RuntimeException("Analysis failed", e);
         }
     }
 
     @Transactional(readOnly = true)
-    public ProjectAnalysis getAnalysis(UUID analysisId) {
-        return analysisRepository.findById(analysisId)
+    public AnalysisDTO getAnalysis(UUID analysisId) {
+        ProjectAnalysis analysis = analysisRepository.findByIdWithDetails(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("Analysis not found with id: " + analysisId));
+        return analysisMapper.toDto(analysis);
     }
 }

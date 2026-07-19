@@ -1,19 +1,18 @@
 package com.example.aicodereviewplatform.analysis.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "file_analysis")
 public class FileAnalysis {
@@ -31,10 +30,19 @@ public class FileAnalysis {
 
     @OneToMany(mappedBy = "fileAnalysis", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<TypeDefinition> typeDefinitions = new ArrayList<>();
+    private Set<TypeDefinition> typeDefinitions = new HashSet<>();
+
+    @OneToMany(mappedBy = "fileAnalysis", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<CheckstyleViolation> checkstyleViolations = new HashSet<>();
 
     public void addTypeDefinition(TypeDefinition typeDefinition) {
         typeDefinitions.add(typeDefinition);
         typeDefinition.setFileAnalysis(this);
+    }
+
+    public void addCheckstyleViolation(CheckstyleViolation violation) {
+        checkstyleViolations.add(violation);
+        violation.setFileAnalysis(this);
     }
 }

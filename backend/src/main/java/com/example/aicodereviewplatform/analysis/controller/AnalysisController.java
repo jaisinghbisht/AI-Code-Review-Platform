@@ -1,6 +1,6 @@
 package com.example.aicodereviewplatform.analysis.controller;
 
-import com.example.aicodereviewplatform.analysis.model.ProjectAnalysis;
+import com.example.aicodereviewplatform.analysis.dto.AnalysisDTO;
 import com.example.aicodereviewplatform.analysis.service.AnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,8 @@ public class AnalysisController {
     }
 
     @GetMapping("/{analysisId}")
-    public ResponseEntity<ProjectAnalysis> getAnalysis(@PathVariable UUID analysisId) {
-        ProjectAnalysis analysis = analysisService.getAnalysis(analysisId);
+    public ResponseEntity<AnalysisDTO> getAnalysis(@PathVariable UUID analysisId) {
+        AnalysisDTO analysis = analysisService.getAnalysis(analysisId);
         return ResponseEntity.ok(analysis);
     }
 }

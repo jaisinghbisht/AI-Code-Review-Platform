@@ -15,13 +15,13 @@ public class CodeReviewController {
 
     private final CodeReviewService codeReviewService;
 
-    @PostMapping("/{submissionId}")
+    @PostMapping("/{submissionId:[0-9]+}")
     public ResponseEntity<Void> generateReview(@PathVariable Long submissionId) {
         codeReviewService.generateReview(submissionId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{submissionId}")
+    @GetMapping("/{submissionId:[0-9]+}")
     public ResponseEntity<CodeReviewResponse> getReview(@PathVariable Long submissionId) {
         return ResponseEntity.ok(codeReviewService.getReview(submissionId));
     }
