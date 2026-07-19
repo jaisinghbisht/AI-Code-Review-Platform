@@ -13,11 +13,13 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>ai-code-review-platform</name>
     <description>AI Code Review Platform</description>
-    
+
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.0.0-M1</spring-ai.version>
         <testcontainers.version>1.19.7</testcontainers.version>
+        <javaparser.version>3.25.10</javaparser.version>
+        <hypersistence.version>3.7.1</hypersistence.version>
     </properties>
 
     <dependencies>
@@ -50,6 +52,18 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <version>${hypersistence.version}</version>
+        </dependency>
+
+        <!-- Code Analysis -->
+        <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-core</artifactId>
+            <version>${javaparser.version}</version>
         </dependency>
 
         <!-- Utilities -->

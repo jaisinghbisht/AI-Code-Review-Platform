@@ -1,0 +1,1 @@
+ALTER TABLE project ADD COLUMN main_class VARCHAR(255);

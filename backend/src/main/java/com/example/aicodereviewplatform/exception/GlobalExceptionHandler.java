@@ -1,5 +1,6 @@
 package com.example.aicodereviewplatform.exception;
 
+import com.example.aicodereviewplatform.project.exception.ProjectProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,6 +21,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AiReviewException.class)
     public ResponseEntity<Object> handleAiReviewException(AiReviewException ex) {
         return buildErrorResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ProjectProcessingException.class)
+    public ResponseEntity<Object> handleProjectProcessingException(ProjectProcessingException ex) {
+        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
